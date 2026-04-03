@@ -1,0 +1,1186 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Foundry Trading Desk</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+
+/* ── TOKENS ── */
+[data-theme="dark"]{
+  --bg:#0e0e0f;--bg2:#161618;--bg3:#1e1e21;--bg4:#262629;--bg5:#2e2e32;
+  --border:rgba(255,255,255,0.06);--border2:rgba(255,255,255,0.11);--border3:rgba(255,255,255,0.18);
+  --text:#f0ece6;--text2:#9b9790;--text3:#5c5a57;--text4:#3a3835;
+  --gold:#d4a843;--gold2:#9a7520;--goldbg:rgba(212,168,67,0.09);--goldbg2:rgba(212,168,67,0.18);
+  --green:#4fa876;--greenbg:rgba(79,168,118,0.1);--greenbg2:rgba(79,168,118,0.18);
+  --red:#d05c5c;--redbg:rgba(208,92,92,0.1);--redbg2:rgba(208,92,92,0.18);
+  --blue:#5b8dd4;--bluebg:rgba(91,141,212,0.1);
+  --amber:#d4893a;--amberbg:rgba(212,137,58,0.1);
+  --shadow:0 1px 3px rgba(0,0,0,0.4);--shadow2:0 4px 16px rgba(0,0,0,0.5);
+  --card-bg:var(--bg2);
+}
+[data-theme="light"]{
+  --bg:#f4f3f0;--bg2:#ffffff;--bg3:#f8f7f4;--bg4:#eeece8;--bg5:#e5e3de;
+  --border:rgba(0,0,0,0.06);--border2:rgba(0,0,0,0.11);--border3:rgba(0,0,0,0.18);
+  --text:#1a1917;--text2:#5a5855;--text3:#9a9895;--text4:#c5c3c0;
+  --gold:#b8870a;--gold2:#8a6208;--goldbg:rgba(184,135,10,0.08);--goldbg2:rgba(184,135,10,0.15);
+  --green:#2d7a52;--greenbg:rgba(45,122,82,0.08);--greenbg2:rgba(45,122,82,0.15);
+  --red:#c03030;--redbg:rgba(192,48,48,0.08);--redbg2:rgba(192,48,48,0.15);
+  --blue:#2d5fa8;--bluebg:rgba(45,95,168,0.08);
+  --amber:#b86a10;--amberbg:rgba(184,106,16,0.08);
+  --shadow:0 1px 3px rgba(0,0,0,0.08);--shadow2:0 4px 16px rgba(0,0,0,0.12);
+  --card-bg:var(--bg2);
+}
+
+body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;line-height:1.6;transition:background .2s,color .2s}
+
+/* ── LAYOUT ── */
+.shell{display:flex;min-height:100vh}
+.sidebar{width:240px;flex-shrink:0;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;z-index:50;transition:background .2s}
+.main{margin-left:240px;flex:1;min-width:0;display:flex;flex-direction:column;min-height:100vh}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:0 1.75rem;height:60px;background:var(--bg2);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:40;transition:background .2s}
+.content{padding:1.75rem;flex:1}
+
+/* ── SIDEBAR ── */
+.sb-brand{padding:1.25rem 1.25rem 1rem;border-bottom:1px solid var(--border)}
+.sb-logo{display:flex;align-items:center;gap:10px}
+.sb-logo-mark{width:32px;height:32px;background:var(--gold);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.sb-logo-mark svg{width:18px;height:18px;fill:none;stroke:#0e0e0f;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+.sb-name{font-size:14px;font-weight:700;letter-spacing:1.5px;color:var(--text)}
+.sb-sub{font-size:10px;color:var(--text3);letter-spacing:.5px;margin-top:1px}
+.sb-nav{padding:.75rem .75rem;flex:1;overflow-y:auto}
+.sb-group{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;padding:.75rem .75rem .3rem;font-weight:500}
+.sb-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;cursor:pointer;color:var(--text2);font-size:14px;transition:all .15s;margin-bottom:2px;border:none;background:none;width:100%;text-align:left;font-family:inherit;font-weight:400}
+.sb-item:hover{background:var(--bg3);color:var(--text)}
+.sb-item.active{background:var(--goldbg2);color:var(--gold);font-weight:500}
+.sb-item .ico{width:16px;height:16px;flex-shrink:0;opacity:.7}
+.sb-item.active .ico{opacity:1}
+.sb-badge{margin-left:auto;font-size:10px;background:var(--bg4);color:var(--text2);border-radius:10px;padding:2px 7px;font-weight:600;min-width:20px;text-align:center}
+.sb-badge.alert{background:var(--redbg);color:var(--red)}
+.sb-badge.gold{background:var(--goldbg);color:var(--gold)}
+.sb-footer{padding:1rem 1.25rem;border-top:1px solid var(--border);display:flex;align-items:center;gap:8px}
+.theme-toggle{display:flex;align-items:center;gap:6px;background:var(--bg3);border:1px solid var(--border2);border-radius:20px;padding:3px;cursor:pointer;transition:all .2s}
+.theme-toggle-btn{width:26px;height:26px;border-radius:50%;border:none;background:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:13px;transition:all .15s;color:var(--text3)}
+.theme-toggle-btn.active{background:var(--bg2);color:var(--text);box-shadow:var(--shadow)}
+
+/* ── TOPBAR ── */
+.tb-left{display:flex;align-items:center;gap:16px}
+.tb-title{font-size:16px;font-weight:600;color:var(--text)}
+.tb-breadcrumb{font-size:13px;color:var(--text3)}
+.tb-right{display:flex;align-items:center;gap:8px}
+.tb-date{font-size:12px;color:var(--text3);background:var(--bg3);border:1px solid var(--border);padding:5px 12px;border-radius:8px;font-weight:500}
+
+/* ── BUTTONS ── */
+.btn{font-size:13px;padding:8px 16px;border-radius:8px;cursor:pointer;font-family:inherit;transition:all .15s;border:none;font-weight:500;display:inline-flex;align-items:center;gap:6px}
+.btn-primary{background:var(--gold);color:#fff;font-weight:600}
+[data-theme="light"] .btn-primary{color:#1a1917}
+.btn-primary:hover{opacity:.9;transform:translateY(-1px)}
+.btn-ghost{background:none;border:1px solid var(--border2);color:var(--text2)}
+.btn-ghost:hover{background:var(--bg3);color:var(--text);border-color:var(--border3)}
+.btn-danger{background:var(--redbg);color:var(--red);border:1px solid rgba(208,92,92,.2)}
+.btn-danger:hover{background:var(--redbg2)}
+.btn-sm{font-size:12px;padding:5px 12px}
+.btn-xs{font-size:11px;padding:3px 8px;border-radius:6px}
+.btn-icon{width:34px;height:34px;padding:0;justify-content:center;background:none;border:1px solid var(--border2);color:var(--text2);border-radius:8px}
+.btn-icon:hover{background:var(--bg3);color:var(--text)}
+
+/* ── SECTIONS ── */
+.section{display:none}
+.section.active{display:block}
+
+/* ── ALERT BAR ── */
+.alert-bar{background:var(--redbg2);border:1px solid rgba(208,92,92,.25);border-radius:10px;padding:10px 16px;margin-bottom:1.25rem;display:flex;align-items:center;gap:10px;font-size:13px;color:var(--red)}
+.alert-bar .alert-icon{font-size:16px;flex-shrink:0}
+
+/* ── METRICS ── */
+.metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:1.5rem}
+.mc{background:var(--card-bg);border:1px solid var(--border);border-radius:12px;padding:18px 20px;box-shadow:var(--shadow);transition:border-color .15s}
+.mc:hover{border-color:var(--border2)}
+.mc-icon{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;margin-bottom:12px;font-size:16px}
+.mc-label{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.7px;font-weight:500;margin-bottom:6px}
+.mc-value{font-size:26px;font-weight:600;color:var(--text);line-height:1.1}
+.mc-sub{font-size:12px;color:var(--text3);margin-top:4px}
+.mc-gold .mc-icon{background:var(--goldbg);color:var(--gold)}
+.mc-gold .mc-value{color:var(--gold)}
+.mc-green .mc-icon{background:var(--greenbg);color:var(--green)}
+.mc-green .mc-value{color:var(--green)}
+.mc-red .mc-icon{background:var(--redbg);color:var(--red)}
+.mc-red .mc-value{color:var(--red)}
+.mc-blue .mc-icon{background:var(--bluebg);color:var(--blue)}
+
+/* ── CARDS ── */
+.card{background:var(--card-bg);border:1px solid var(--border);border-radius:12px;padding:1.25rem 1.5rem;box-shadow:var(--shadow);transition:border-color .15s}
+.card:hover{border-color:var(--border2)}
+.card-title{font-size:13px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.6px;margin-bottom:1rem}
+.card-title-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem}
+
+/* ── GRID ── */
+.g2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.g3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.ga{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+
+/* ── TABLE ── */
+.tbl-wrap{background:var(--card-bg);border:1px solid var(--border);border-radius:12px;overflow:hidden;box-shadow:var(--shadow)}
+table{width:100%;border-collapse:collapse}
+thead th{text-align:left;font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.7px;font-weight:600;padding:12px 16px;border-bottom:1px solid var(--border);background:var(--bg3)}
+tbody td{padding:13px 16px;border-bottom:1px solid var(--border);color:var(--text);font-size:14px;vertical-align:middle}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover td{background:var(--bg3)}
+.td-muted{color:var(--text3);font-size:12px}
+
+/* ── BADGES ── */
+.badge{font-size:11px;padding:3px 9px;border-radius:20px;font-weight:600;white-space:nowrap;display:inline-flex;align-items:center;gap:4px}
+.b-gold{background:var(--goldbg);color:var(--gold)}
+.b-green{background:var(--greenbg);color:var(--green)}
+.b-red{background:var(--redbg);color:var(--red)}
+.b-blue{background:var(--bluebg);color:var(--blue)}
+.b-gray{background:var(--bg4);color:var(--text2)}
+.b-amber{background:var(--amberbg);color:var(--amber)}
+
+/* ── AVATAR ── */
+.av{border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0}
+.av-sm{width:30px;height:30px;font-size:11px}
+.av-md{width:40px;height:40px;font-size:14px}
+.av-lg{width:52px;height:52px;font-size:17px}
+.av-xl{width:64px;height:64px;font-size:21px}
+.av-1{background:rgba(91,141,212,.2);color:#5b8dd4}
+.av-2{background:rgba(79,168,118,.2);color:#4fa876}
+.av-3{background:rgba(212,168,67,.2);color:#d4a843}
+
+/* ── PROGRESS BAR ── */
+.bar{height:6px;background:var(--bg4);border-radius:3px;overflow:hidden}
+.bar-lg{height:10px}
+.bar-fill{height:100%;border-radius:3px;transition:width .5s ease}
+.bf-gold{background:linear-gradient(90deg,var(--gold2),var(--gold))}
+.bf-green{background:linear-gradient(90deg,var(--green),#6fcf97)}
+.bf-red{background:var(--red)}
+.bf-blue{background:var(--blue)}
+
+/* ── STAT ROW ── */
+.sr{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);font-size:14px}
+.sr:last-of-type{border-bottom:none}
+.sr-label{color:var(--text2)}
+.sr-val{color:var(--text);font-weight:600}
+
+/* ── STRIKES ── */
+.strikes{display:flex;gap:5px;align-items:center}
+.sd{width:12px;height:12px;border-radius:50%;border:1.5px solid var(--border2);background:var(--bg4)}
+.sd.hit{background:var(--amber);border-color:var(--amber)}
+.sd.danger{background:var(--red);border-color:var(--red)}
+
+/* ── PIPE ITEM ── */
+.pi{display:flex;align-items:center;gap:12px;background:var(--card-bg);border:1px solid var(--border);border-radius:10px;padding:12px 16px;margin-bottom:8px;cursor:pointer;transition:all .15s}
+.pi:hover{border-color:var(--gold);transform:translateY(-1px);box-shadow:var(--shadow)}
+.stage-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.sd-app{background:var(--text3)}
+.sd-test{background:var(--blue)}
+.sd-int{background:var(--gold)}
+.sd-train{background:var(--green)}
+.sd-rej{background:var(--red)}
+
+/* ── HEALTH SCORE ── */
+.health-ring{position:relative;width:64px;height:64px;flex-shrink:0}
+.health-ring svg{transform:rotate(-90deg)}
+.health-ring .score-label{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;color:var(--text)}
+
+/* ── TABS ── */
+.tabs{display:flex;gap:2px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:3px;width:fit-content;margin-bottom:1.25rem}
+.tab{font-size:13px;padding:7px 16px;border:none;background:none;color:var(--text2);cursor:pointer;border-radius:8px;font-family:inherit;transition:all .15s;font-weight:500}
+.tab:hover{color:var(--text)}
+.tab.active{background:var(--card-bg);color:var(--text);box-shadow:var(--shadow);font-weight:600}
+
+/* ── BRIEF ── */
+.brief-card{background:var(--card-bg);border:1px solid var(--border);border-radius:10px;padding:14px 18px;margin-bottom:10px}
+.brief-head{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.bias-pill{font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px}
+.bull{background:var(--greenbg2);color:var(--green)}
+.bear{background:var(--redbg2);color:var(--red)}
+.neu{background:var(--bg4);color:var(--text2)}
+.level-tag{font-size:12px;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;padding:3px 9px;color:var(--text2);font-weight:500}
+
+/* ── VIOLATION ── */
+.viol-row{display:flex;align-items:flex-start;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)}
+.viol-row:last-child{border-bottom:none}
+
+/* ── ONBOARDING ── */
+.ob-step{display:flex;align-items:center;gap:10px;padding:8px 0;font-size:13px}
+.ob-check{width:20px;height:20px;border-radius:50%;border:1.5px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0}
+.ob-check.done{background:var(--green);border-color:var(--green);color:#fff}
+.ob-check.pending{background:var(--bg4)}
+
+/* ── STEP PROGRESS ── */
+.steps{display:flex;align-items:center;margin-bottom:1.5rem}
+.step-item{flex:1;text-align:center;position:relative}
+.step-circle{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;margin:0 auto 6px;position:relative;z-index:1}
+.step-connector{position:absolute;top:14px;left:50%;right:-50%;height:2px;z-index:0}
+.step-item:last-child .step-connector{display:none}
+.step-done .step-circle{background:var(--green);color:#fff}
+.step-done .step-connector{background:var(--green)}
+.step-active .step-circle{background:var(--gold);color:#fff;box-shadow:0 0 0 3px var(--goldbg2)}
+.step-active .step-connector{background:var(--border2)}
+.step-pending .step-circle{background:var(--bg4);color:var(--text3);border:1.5px solid var(--border2)}
+.step-pending .step-connector{background:var(--border2)}
+.step-label{font-size:10px;color:var(--text3);font-weight:500}
+
+/* ── QUICK ACTION ── */
+.qa-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-bottom:1.5rem}
+.qa-btn{background:var(--card-bg);border:1px solid var(--border);border-radius:10px;padding:14px 12px;cursor:pointer;font-family:inherit;text-align:center;transition:all .15s;display:flex;flex-direction:column;align-items:center;gap:8px}
+.qa-btn:hover{border-color:var(--gold);background:var(--goldbg);transform:translateY(-2px);box-shadow:var(--shadow2)}
+.qa-btn .qa-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;background:var(--bg3)}
+.qa-btn .qa-label{font-size:12px;font-weight:600;color:var(--text);text-align:center}
+.qa-btn .qa-sub{font-size:10px;color:var(--text3)}
+
+/* ── ALERT ITEM ── */
+.alert-item{display:flex;align-items:flex-start;gap:10px;padding:10px 14px;border-radius:8px;margin-bottom:6px;font-size:13px}
+.ai-warn{background:var(--amberbg);border:1px solid rgba(212,137,58,.2)}
+.ai-danger{background:var(--redbg);border:1px solid rgba(208,92,92,.2)}
+.ai-info{background:var(--bluebg);border:1px solid rgba(91,141,212,.2)}
+.ai-success{background:var(--greenbg);border:1px solid rgba(79,168,118,.2)}
+
+/* ── SCORE BAR ── */
+.score-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.score-lbl{font-size:12px;color:var(--text2);width:130px;flex-shrink:0}
+.score-trk{flex:1;height:6px;background:var(--bg4);border-radius:3px;overflow:hidden}
+.score-fill{height:100%;border-radius:3px;background:var(--gold)}
+.score-num{font-size:12px;color:var(--text2);width:34px;text-align:right;font-weight:600}
+
+/* ── EMPTY ── */
+.empty{text-align:center;padding:3rem 1.5rem;color:var(--text3);font-size:14px;background:var(--bg3);border:1.5px dashed var(--border2);border-radius:12px}
+.empty-icon{font-size:32px;margin-bottom:10px;opacity:.4}
+.empty-title{font-size:15px;font-weight:600;color:var(--text2);margin-bottom:4px}
+
+/* ── NOTE ── */
+.note{background:var(--goldbg);border-left:3px solid var(--gold);border-radius:0 8px 8px 0;padding:10px 14px;font-size:13px;color:var(--text2)}
+
+/* ── MODAL ── */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:200;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
+.overlay.open{display:flex}
+.modal{background:var(--bg2);border:1px solid var(--border2);border-radius:16px;padding:1.75rem;width:460px;max-width:95vw;max-height:90vh;overflow-y:auto;box-shadow:var(--shadow2)}
+.modal-title{font-size:17px;font-weight:700;color:var(--text);margin-bottom:1.5rem;display:flex;align-items:center;gap:8px}
+.modal-footer{display:flex;gap:8px;justify-content:flex-end;margin-top:1.5rem;padding-top:1.25rem;border-top:1px solid var(--border)}
+.form-row{margin-bottom:14px}
+.form-row label{font-size:11px;color:var(--text3);display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;font-weight:600}
+.form-row input,.form-row select,.form-row textarea{width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-size:14px;padding:10px 13px;font-family:inherit;outline:none;transition:border-color .15s}
+.form-row input:focus,.form-row select:focus,.form-row textarea:focus{border-color:var(--gold);box-shadow:0 0 0 3px var(--goldbg)}
+.form-row select option{background:var(--bg2)}
+.form-row textarea{resize:vertical;min-height:80px;line-height:1.5}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.form-section{font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.7px;padding:12px 0 6px;border-top:1px solid var(--border);margin-top:4px}
+
+/* ── CHART ── */
+.chart-wrap{position:relative;width:100%;height:220px}
+
+/* ── PROFILE ── */
+.profile-hero{background:var(--card-bg);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:14px;display:flex;align-items:flex-start;gap:16px}
+.profile-meta h2{font-size:20px;font-weight:700;color:var(--text);margin-bottom:4px}
+.profile-meta .sub{font-size:13px;color:var(--text2)}
+.profile-meta .tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+
+/* ── MISC ── */
+hr{border:none;border-top:1px solid var(--border);margin:1.25rem 0}
+.gold{color:var(--gold);font-weight:600}
+.green{color:var(--green);font-weight:600}
+.red{color:var(--red)}
+.muted{color:var(--text3)}
+.text-sm{font-size:12px}
+.text-xs{font-size:11px}
+.fw6{font-weight:600}
+.fw7{font-weight:700}
+.mt1{margin-top:.5rem}
+.mb1{margin-bottom:.5rem}
+.gap{gap:8px}
+
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+
+@media(max-width:768px){
+  .sidebar{width:0;overflow:hidden}
+  .main{margin-left:0}
+  .metrics{grid-template-columns:repeat(2,1fr)}
+}
+</style>
+</head>
+<body>
+<div class="shell">
+
+<!-- ══ SIDEBAR ══ -->
+<div class="sidebar">
+  <div class="sb-brand">
+    <div class="sb-logo">
+      <div class="sb-logo-mark">
+        <svg viewBox="0 0 24 24"><path d="M12 3L4 8v8l8 5 8-5V8z"/><path d="M12 3v13M4 8l8 5 8-5"/></svg>
+      </div>
+      <div><div class="sb-name">FOUNDRY</div><div class="sb-sub">Trading Desk · Tashkent</div></div>
+    </div>
+  </div>
+
+  <nav class="sb-nav">
+    <div class="sb-group">Desk</div>
+    <button class="sb-item active" onclick="nav('today',this)">
+      <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      Command Center
+    </button>
+    <button class="sb-item" onclick="nav('analytics',this)">
+      <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      Analytics
+    </button>
+
+    <div class="sb-group">People</div>
+    <button class="sb-item" onclick="nav('traders',this)">
+      <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/><path d="M21 21v-2a4 4 0 0 0-3-3.85"/></svg>
+      Traders <span class="sb-badge gold" id="sb-traders">0</span>
+    </button>
+    <button class="sb-item" onclick="nav('pipeline',this)">
+      <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      Pipeline <span class="sb-badge" id="sb-cands">0</span>
+    </button>
+    <button class="sb-item" onclick="nav('community',this)">
+      <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="23" y1="11" x2="17" y2="11"/><line x1="20" y1="8" x2="20" y2="14"/></svg>
+      Community <span class="sb-badge" id="sb-comm">0</span>
+    </button>
+
+    <div class="sb-group">Finance</div>
+    <button class="sb-item" onclick="nav('payouts',this)">
+      <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+      Payouts
+    </button>
+
+    <div class="sb-group">Operations</div>
+    <button class="sb-item" onclick="nav('briefings',this)">
+      <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      Morning Briefs
+    </button>
+    <button class="sb-item" onclick="nav('sessions',this)">
+      <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+      Sessions
+    </button>
+    <button class="sb-item" onclick="nav('violations',this)">
+      <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      Violations <span class="sb-badge alert" id="sb-viols" style="display:none">0</span>
+    </button>
+
+    <div class="sb-group">Reference</div>
+    <button class="sb-item" onclick="nav('rules',this)">
+      <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      Desk Rules
+    </button>
+  </nav>
+
+  <div class="sb-footer">
+    <div class="theme-toggle">
+      <button class="theme-toggle-btn" id="tbtn-dark" onclick="setTheme('dark')" title="Dark">🌙</button>
+      <button class="theme-toggle-btn active" id="tbtn-light" onclick="setTheme('light')" title="Light">☀️</button>
+    </div>
+    <div style="flex:1"></div>
+    <button class="btn btn-ghost btn-xs" onclick="exportData()" title="Export">↑ Export</button>
+  </div>
+</div>
+
+<!-- ══ MAIN ══ -->
+<div class="main">
+<div class="topbar">
+  <div class="tb-left">
+    <div class="tb-title" id="tb-title">Command Center</div>
+    <div class="tb-breadcrumb" id="tb-bread"></div>
+  </div>
+  <div class="tb-right">
+    <div class="tb-date" id="tb-date"></div>
+    <input type="file" id="import-file" accept=".json" style="display:none" onchange="importData(event)">
+    <button class="btn btn-ghost btn-sm" onclick="document.getElementById('import-file').click()">↓ Import</button>
+    <button class="btn btn-primary btn-sm" id="tb-add" onclick="topbarAdd()">+ Add</button>
+  </div>
+</div>
+
+<div class="content">
+
+<!-- ══ TODAY / COMMAND CENTER ══ -->
+<div id="sec-today" class="section active">
+  <div id="today-alerts"></div>
+
+  <div class="qa-grid">
+    <button class="qa-btn" onclick="openM('m-trader')"><div class="qa-icon">👤</div><div class="qa-label">Add Trader</div><div class="qa-sub">New desk member</div></button>
+    <button class="qa-btn" onclick="openM('m-payout')"><div class="qa-icon">💰</div><div class="qa-label">Log Payout</div><div class="qa-sub">Record earnings</div></button>
+    <button class="qa-btn" onclick="openBriefM()"><div class="qa-icon">📋</div><div class="qa-label">Post Brief</div><div class="qa-sub">Morning levels</div></button>
+    <button class="qa-btn" onclick="openSessionM()"><div class="qa-icon">📊</div><div class="qa-label">Log Session</div><div class="qa-sub">Session report</div></button>
+    <button class="qa-btn" onclick="openM('m-candidate')"><div class="qa-icon">🔍</div><div class="qa-label">Add Candidate</div><div class="qa-sub">Pipeline entry</div></button>
+    <button class="qa-btn" onclick="openViolM()"><div class="qa-icon">⚠️</div><div class="qa-label">Log Violation</div><div class="qa-sub">Rule breach</div></button>
+  </div>
+
+  <div class="metrics">
+    <div class="mc mc-gold"><div class="mc-icon">$</div><div class="mc-label">Your earnings</div><div class="mc-value" id="td-yours">$0</div><div class="mc-sub">All time</div></div>
+    <div class="mc mc-blue"><div class="mc-icon">👥</div><div class="mc-label">Active traders</div><div class="mc-value" id="td-traders">0</div><div class="mc-sub">Phase 1 desk</div></div>
+    <div class="mc mc-green"><div class="mc-icon">↑</div><div class="mc-label">This month</div><div class="mc-value" id="td-month">$0</div><div class="mc-sub">Operator share</div></div>
+    <div class="mc"><div class="mc-icon">🏆</div><div class="mc-label">Community fees</div><div class="mc-value" id="td-fees">$0</div><div class="mc-sub">Monthly revenue</div></div>
+  </div>
+
+  <div class="g2">
+    <div>
+      <div class="card">
+        <div class="card-title-row"><div class="card-title">Milestone tracker</div><span class="text-xs muted">$3,000 to Phase 2</span></div>
+        <div id="td-milestones"></div>
+      </div>
+      <div class="card" style="margin-top:14px">
+        <div class="card-title-row"><div class="card-title">Today's brief</div><button class="btn btn-ghost btn-xs" onclick="openBriefM()">+ Post</button></div>
+        <div id="td-brief"></div>
+      </div>
+    </div>
+    <div>
+      <div class="card">
+        <div class="card-title-row"><div class="card-title">Trader health</div><span class="text-xs muted">Composite score</span></div>
+        <div id="td-health"></div>
+      </div>
+      <div class="card" style="margin-top:14px">
+        <div class="card-title-row"><div class="card-title">Pipeline</div><span class="badge b-gray" id="td-pipe-count">0 active</span></div>
+        <div id="td-pipeline"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ ANALYTICS ══ -->
+<div id="sec-analytics" class="section">
+  <div class="metrics">
+    <div class="mc mc-gold"><div class="mc-icon">$</div><div class="mc-label">Total earned</div><div class="mc-value" id="an-total">$0</div><div class="mc-sub">All time</div></div>
+    <div class="mc"><div class="mc-icon">📈</div><div class="mc-label">Avg payout</div><div class="mc-value" id="an-avg">$0</div><div class="mc-sub">Per entry</div></div>
+    <div class="mc mc-green"><div class="mc-icon">%</div><div class="mc-label">Conversion</div><div class="mc-value" id="an-conv">0%</div><div class="mc-sub">Apps → funded</div></div>
+    <div class="mc mc-blue"><div class="mc-icon">🎯</div><div class="mc-label">Phase 2 proximity</div><div class="mc-value" id="an-close">—</div><div class="mc-sub">Closest trader</div></div>
+  </div>
+  <div class="g2">
+    <div class="card"><div class="card-title">Monthly operator earnings</div><div class="chart-wrap"><canvas id="chart-earnings"></canvas></div></div>
+    <div class="card"><div class="card-title">Milestone velocity</div><div id="an-velocity"></div></div>
+  </div>
+  <div class="card" style="margin-top:14px"><div class="card-title">Per-trader breakdown</div><div id="an-breakdown"></div></div>
+</div>
+
+<!-- ══ TRADERS ══ -->
+<div id="sec-traders" class="section">
+  <div class="ga" id="trader-cards"></div>
+  <div id="traders-empty" class="empty" style="display:none"><div class="empty-icon">👤</div><div class="empty-title">No traders yet</div><div>Add your first desk member to get started</div></div>
+</div>
+
+<!-- ══ TRADER PROFILE ══ -->
+<div id="sec-trader-profile" class="section">
+  <button class="btn btn-ghost btn-sm" style="margin-bottom:1.25rem" onclick="back('traders')">← Back to traders</button>
+  <div id="tp-content"></div>
+</div>
+
+<!-- ══ PIPELINE ══ -->
+<div id="sec-pipeline" class="section">
+  <div class="tabs" id="pipe-tabs">
+    <button class="tab active" onclick="pipeFilter('all',this)">All</button>
+    <button class="tab" onclick="pipeFilter('application',this)">Application</button>
+    <button class="tab" onclick="pipeFilter('test',this)">Test</button>
+    <button class="tab" onclick="pipeFilter('interview',this)">Interview</button>
+    <button class="tab" onclick="pipeFilter('training',this)">Training</button>
+    <button class="tab" onclick="pipeFilter('rejected',this)">Rejected</button>
+  </div>
+  <div id="pipe-list"></div>
+  <div id="pipe-empty" class="empty" style="display:none"><div class="empty-icon">🔍</div><div class="empty-title">No candidates</div></div>
+</div>
+
+<!-- ══ CANDIDATE PROFILE ══ -->
+<div id="sec-cand-profile" class="section">
+  <button class="btn btn-ghost btn-sm" style="margin-bottom:1.25rem" onclick="back('pipeline')">← Back to pipeline</button>
+  <div id="cp-content"></div>
+</div>
+
+<!-- ══ COMMUNITY ══ -->
+<div id="sec-community" class="section">
+  <div class="metrics">
+    <div class="mc mc-green"><div class="mc-icon">🌐</div><div class="mc-label">Members</div><div class="mc-value" id="cm-count">0</div><div class="mc-sub">Phase 2B</div></div>
+    <div class="mc mc-gold"><div class="mc-icon">$</div><div class="mc-label">Monthly fees</div><div class="mc-value" id="cm-fees">$0</div><div class="mc-sub">Total due</div></div>
+    <div class="mc mc-green"><div class="mc-icon">✓</div><div class="mc-label">Collected</div><div class="mc-value" id="cm-paid">$0</div><div class="mc-sub">This cycle</div></div>
+    <div class="mc mc-red"><div class="mc-icon">!</div><div class="mc-label">Overdue</div><div class="mc-value" id="cm-overdue">$0</div><div class="mc-sub">Pending</div></div>
+  </div>
+  <div class="tbl-wrap">
+    <table><thead><tr><th>Member</th><th>Joined</th><th>Contact</th><th>Fee Status</th><th>Access</th><th>Actions</th></tr></thead>
+    <tbody id="cm-rows"><tr><td colspan="6" style="text-align:center;padding:2.5rem" class="muted">No community members yet</td></tr></tbody></table>
+  </div>
+</div>
+
+<!-- ══ PAYOUTS ══ -->
+<div id="sec-payouts" class="section">
+  <div class="metrics">
+    <div class="mc mc-gold"><div class="mc-icon">$</div><div class="mc-label">All time earned</div><div class="mc-value" id="py-total">$0</div><div class="mc-sub">Operator share</div></div>
+    <div class="mc"><div class="mc-icon">📅</div><div class="mc-label">This month</div><div class="mc-value" id="py-month">$0</div><div class="mc-sub">Current period</div></div>
+    <div class="mc"><div class="mc-icon">#</div><div class="mc-label">Entries</div><div class="mc-value" id="py-count">0</div><div class="mc-sub">Total logged</div></div>
+    <div class="mc mc-blue"><div class="mc-icon">👥</div><div class="mc-label">Active splits</div><div class="mc-value" id="py-active">0</div><div class="mc-sub">Phase 1 traders</div></div>
+  </div>
+  <div class="tbl-wrap">
+    <table><thead><tr><th>Month</th><th>Trader</th><th>Type</th><th>Gross</th><th>Your 50%</th><th>Running total</th><th>Phase status</th><th>Notes</th></tr></thead>
+    <tbody id="py-rows"><tr><td colspan="8" style="text-align:center;padding:2.5rem" class="muted">No payouts logged yet</td></tr></tbody></table>
+  </div>
+</div>
+
+<!-- ══ BRIEFINGS ══ -->
+<div id="sec-briefings" class="section">
+  <div id="brief-list"></div>
+  <div id="brief-empty" class="empty" style="display:none"><div class="empty-icon">📋</div><div class="empty-title">No briefs yet</div><div>Post today's morning brief above</div></div>
+</div>
+
+<!-- ══ SESSIONS ══ -->
+<div id="sec-sessions" class="section">
+  <div class="tbl-wrap">
+    <table><thead><tr><th>Date</th><th>Session</th><th>Trader</th><th>Trades</th><th>P&L</th><th>DLL</th><th>Report</th><th>Mood</th><th>Notes</th></tr></thead>
+    <tbody id="ss-rows"><tr><td colspan="9" style="text-align:center;padding:2.5rem" class="muted">No sessions logged yet</td></tr></tbody></table>
+  </div>
+</div>
+
+<!-- ══ VIOLATIONS ══ -->
+<div id="sec-violations" class="section">
+  <div class="metrics">
+    <div class="mc"><div class="mc-icon">#</div><div class="mc-label">Total</div><div class="mc-value" id="vl-total">0</div><div class="mc-sub">All violations</div></div>
+    <div class="mc mc-red"><div class="mc-icon">🚨</div><div class="mc-label">Hard rule</div><div class="mc-value" id="vl-hard">0</div><div class="mc-sub">Zero tolerance</div></div>
+    <div class="mc mc-gold"><div class="mc-icon">⚠️</div><div class="mc-label">Soft rule</div><div class="mc-value" id="vl-soft">0</div><div class="mc-sub">Three-strike</div></div>
+    <div class="mc mc-red"><div class="mc-icon">!</div><div class="mc-label">At risk</div><div class="mc-value" id="vl-risk">0</div><div class="mc-sub">2+ strikes</div></div>
+  </div>
+  <div class="tbl-wrap">
+    <table><thead><tr><th>Date</th><th>Trader</th><th>Type</th><th>Rule</th><th>Strike #</th><th>Description</th><th>Action</th></tr></thead>
+    <tbody id="vl-rows"><tr><td colspan="7" style="text-align:center;padding:2.5rem" class="muted">No violations logged</td></tr></tbody></table>
+  </div>
+</div>
+
+<!-- ══ RULES ══ -->
+<div id="sec-rules" class="section">
+  <div class="g2">
+    <div class="card"><div class="card-title" style="color:var(--red)">🚨 Hard rules — zero tolerance</div>
+      <div class="sr"><span class="sr-label">Credential access attempt</span><span class="badge b-red">Removal</span></div>
+      <div class="sr"><span class="sr-label">Trading outside strategy</span><span class="badge b-red">Removal</span></div>
+      <div class="sr"><span class="sr-label">Sharing desk information externally</span><span class="badge b-red">Removal</span></div>
+      <div class="sr"><span class="sr-label">Report or journal falsification</span><span class="badge b-red">Removal</span></div>
+      <div class="sr"><span class="sr-label">Desk poaching</span><span class="badge b-red">Removal</span></div>
+    </div>
+    <div class="card"><div class="card-title" style="color:var(--amber)">⚠️ Soft rules — three strikes</div>
+      <div class="sr"><span class="sr-label">Missing session reports</span><span class="badge b-amber">3 strikes</span></div>
+      <div class="sr"><span class="sr-label">Trading past daily loss limit</span><span class="badge b-amber">3 strikes</span></div>
+      <div class="sr"><span class="sr-label">Late arrival / unexplained absence</span><span class="badge b-amber">3 strikes</span></div>
+      <div class="sr"><span class="sr-label">Phone use during trading hours</span><span class="badge b-amber">3 strikes</span></div>
+      <div class="sr"><span class="sr-label">Disrespectful conduct</span><span class="badge b-amber">3 strikes</span></div>
+    </div>
+    <div class="card"><div class="card-title" style="color:var(--green)">✓ Professional standards</div>
+      <div class="sr"><span class="sr-label">Journal every trade without exception</span><span class="badge b-gray">Culture</span></div>
+      <div class="sr"><span class="sr-label">Morning Brief reviewed before charts</span><span class="badge b-gray">Culture</span></div>
+      <div class="sr"><span class="sr-label">Weekly summary every Friday</span><span class="badge b-gray">Culture</span></div>
+      <div class="sr"><span class="sr-label">Mindset sessions attended</span><span class="badge b-gray">Culture</span></div>
+      <div class="sr"><span class="sr-label">Honest self-assessment always</span><span class="badge b-gray">Culture</span></div>
+    </div>
+    <div class="card"><div class="card-title" style="color:var(--gold)">◆ Partnership terms</div>
+      <div class="sr"><span class="sr-label">Phase 1 split</span><span class="sr-val">50 / 50</span></div>
+      <div class="sr"><span class="sr-label">Phase 2 milestone</span><span class="sr-val">$3,000 to operator</span></div>
+      <div class="sr"><span class="sr-label">Early exit fee</span><span class="sr-val">$150 – $200</span></div>
+      <div class="sr"><span class="sr-label">6-month ceiling</span><span class="sr-val">Clean exit</span></div>
+      <div class="sr"><span class="sr-label">Community fee (Phase 2B)</span><span class="sr-val">$500 / month</span></div>
+      <div class="sr"><span class="sr-label">Program deposit</span><span class="sr-val">$600</span></div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /content -->
+</div><!-- /main -->
+</div><!-- /shell -->
+
+<!-- ══ MODALS ══ -->
+
+<!-- TRADER -->
+<div class="overlay" id="m-trader">
+<div class="modal">
+  <div class="modal-title">👤 <span id="m-trader-title">Add Trader</span></div>
+  <input type="hidden" id="et-id">
+  <div class="form-section">Identity</div>
+  <div class="form-grid">
+    <div class="form-row"><label>Full name *</label><input id="t-name" placeholder="Jasur Karimov"></div>
+    <div class="form-row"><label>Start date *</label><input type="date" id="t-date"></div>
+    <div class="form-row"><label>Phone / Telegram</label><input id="t-contact" placeholder="@username"></div>
+    <div class="form-row"><label>Phase</label><select id="t-phase"><option value="1">Phase 1 — Active (50/50)</option><option value="2">Phase 2B — Community</option></select></div>
+  </div>
+  <div class="form-section">Prop Firm</div>
+  <div class="form-grid">
+    <div class="form-row"><label>Prop firm</label><input id="t-firm" placeholder="Topstep, Phidias..."></div>
+    <div class="form-row"><label>Account size</label><input id="t-account" placeholder="$50,000"></div>
+  </div>
+  <div class="form-section">Notes</div>
+  <div class="form-row"><label>Private operator notes</label><textarea id="t-notes" placeholder="Observations, strengths, concerns..."></textarea></div>
+  <div class="modal-footer"><button class="btn btn-ghost" onclick="closeM()">Cancel</button><button class="btn btn-primary" onclick="saveTrader()">Save trader</button></div>
+</div>
+</div>
+
+<!-- PAYOUT -->
+<div class="overlay" id="m-payout">
+<div class="modal">
+  <div class="modal-title">💰 Log Payout</div>
+  <div class="form-grid">
+    <div class="form-row"><label>Trader *</label><select id="p-trader"><option value="">Select...</option></select></div>
+    <div class="form-row"><label>Month *</label><input type="month" id="p-month"></div>
+    <div class="form-row"><label>Gross payout ($) *</label><input type="number" id="p-gross" placeholder="1200" min="0" step="1"></div>
+    <div class="form-row"><label>Type</label><select id="p-type"><option value="monthly">Monthly reconciliation</option><option value="weekly">Weekly partial</option></select></div>
+  </div>
+  <div class="form-row"><label>Notes</label><input id="p-notes" placeholder="Optional notes..."></div>
+  <div class="modal-footer"><button class="btn btn-ghost" onclick="closeM()">Cancel</button><button class="btn btn-primary" onclick="savePayout()">Log payout</button></div>
+</div>
+</div>
+
+<!-- CANDIDATE -->
+<div class="overlay" id="m-candidate">
+<div class="modal">
+  <div class="modal-title">🔍 <span id="m-cand-title">Add Candidate</span></div>
+  <input type="hidden" id="ec-id">
+  <div class="form-section">Identity</div>
+  <div class="form-grid">
+    <div class="form-row"><label>Full name *</label><input id="c-name" placeholder="Sardor Yusupov"></div>
+    <div class="form-row"><label>Date added *</label><input type="date" id="c-date"></div>
+    <div class="form-row"><label>Contact</label><input id="c-contact" placeholder="@telegram"></div>
+    <div class="form-row"><label>Stage</label><select id="c-stage"><option value="application">Application</option><option value="test">Screening test</option><option value="interview">Interview</option><option value="training">Training</option><option value="rejected">Rejected</option></select></div>
+  </div>
+  <div class="form-section">Evaluation</div>
+  <div class="form-grid">
+    <div class="form-row"><label>Test score (0–100)</label><input type="number" id="c-score" placeholder="—" min="0" max="100"></div>
+    <div class="form-row"><label>Interview score (0–25)</label><input type="number" id="c-iscore" placeholder="—" min="0" max="25"></div>
+    <div class="form-row"><label>Deposit</label><select id="c-deposit"><option value="no">Not paid</option><option value="yes">Paid $600</option><option value="forfeited">Forfeited</option></select></div>
+    <div class="form-row"><label>Training progress</label><select id="c-week"><option value="0">Not started</option><option value="1">Week 1</option><option value="2">Week 2</option><option value="3">Week 3</option><option value="pass">Passed ✓</option><option value="fail">Failed ✗</option></select></div>
+  </div>
+  <div class="form-row"><label>Notes</label><textarea id="c-notes" placeholder="Application impressions, observations..."></textarea></div>
+  <div class="modal-footer"><button class="btn btn-ghost" onclick="closeM()">Cancel</button><button class="btn btn-primary" onclick="saveCandidate()">Save candidate</button></div>
+</div>
+</div>
+
+<!-- BRIEF -->
+<div class="overlay" id="m-brief">
+<div class="modal">
+  <div class="modal-title">📋 Post Morning Brief</div>
+  <div class="form-grid">
+    <div class="form-row"><label>Date *</label><input type="date" id="br-date"></div>
+    <div class="form-row"><label>Session bias</label><select id="br-bias"><option value="bullish">Bullish</option><option value="bearish">Bearish</option><option value="neutral">Neutral</option></select></div>
+  </div>
+  <div class="form-row"><label>Key HVN levels (comma separated)</label><input id="br-levels" placeholder="2180, 2165, 2150, 2140"></div>
+  <div class="form-row"><label>MA9 context</label><input id="br-ma9" placeholder="Price above MA9, ranging between zones..."></div>
+  <div class="form-row"><label>What to watch</label><textarea id="br-watch" placeholder="Entry conditions, setup requirements..."></textarea></div>
+  <div class="form-row"><label>News / events</label><input id="br-news" placeholder="FOMC, CPI, NFP, earnings..."></div>
+  <div class="modal-footer"><button class="btn btn-ghost" onclick="closeM()">Cancel</button><button class="btn btn-primary" onclick="saveBrief()">Post brief</button></div>
+</div>
+</div>
+
+<!-- SESSION -->
+<div class="overlay" id="m-session">
+<div class="modal">
+  <div class="modal-title">📊 Log Session</div>
+  <div class="form-grid">
+    <div class="form-row"><label>Trader *</label><select id="ss-trader"><option value="">Select...</option></select></div>
+    <div class="form-row"><label>Date *</label><input type="date" id="ss-date"></div>
+    <div class="form-row"><label>Session type</label><select id="ss-type"><option value="london">London</option><option value="pre-ny">Pre-NY</option><option value="ny">NY Open</option><option value="asian">Asian</option></select></div>
+    <div class="form-row"><label>Trades taken</label><input type="number" id="ss-trades" placeholder="0" min="0"></div>
+    <div class="form-row"><label>P&L ($)</label><input type="number" id="ss-pnl" placeholder="0" step="1"></div>
+    <div class="form-row"><label>DLL hit?</label><select id="ss-dll"><option value="no">No — clean</option><option value="yes">Yes — stopped correctly</option><option value="breached">Yes — traded past it ⚠️</option></select></div>
+    <div class="form-row"><label>Report submitted?</label><select id="ss-rep"><option value="yes">Yes — on time</option><option value="late">Yes — late</option><option value="no">No — missing ⚠️</option></select></div>
+    <div class="form-row"><label>Emotional state (1–10)</label><input type="number" id="ss-mood" placeholder="7" min="1" max="10"></div>
+  </div>
+  <div class="form-row"><label>Notes</label><textarea id="ss-notes" placeholder="Key observations from the session..."></textarea></div>
+  <div class="modal-footer"><button class="btn btn-ghost" onclick="closeM()">Cancel</button><button class="btn btn-primary" onclick="saveSession()">Log session</button></div>
+</div>
+</div>
+
+<!-- VIOLATION -->
+<div class="overlay" id="m-viol">
+<div class="modal">
+  <div class="modal-title">⚠️ Log Violation</div>
+  <div class="form-grid">
+    <div class="form-row"><label>Trader *</label><select id="vl-trader"><option value="">Select...</option></select></div>
+    <div class="form-row"><label>Date *</label><input type="date" id="vl-date"></div>
+    <div class="form-row"><label>Type</label><select id="vl-type"><option value="hard">Hard rule</option><option value="soft">Soft rule</option></select></div>
+    <div class="form-row"><label>Rule broken</label><select id="vl-rule"><option value="credentials">Credential access</option><option value="strategy">Off-strategy trading</option><option value="sharing">Info sharing</option><option value="falsification">Report falsification</option><option value="poaching">Desk poaching</option><option value="report">Missing session report</option><option value="dll">Trading past DLL</option><option value="attendance">Late / absent</option><option value="phone">Phone during trading</option><option value="conduct">Disrespectful conduct</option></select></div>
+  </div>
+  <div class="form-row"><label>Description</label><textarea id="vl-desc" placeholder="What happened in detail..."></textarea></div>
+  <div class="form-row"><label>Action taken</label><input id="vl-action" placeholder="Verbal warning, written warning, removal..."></div>
+  <div class="modal-footer"><button class="btn btn-ghost" onclick="closeM()">Cancel</button><button class="btn btn-primary" onclick="saveViolation()">Log violation</button></div>
+</div>
+</div>
+
+<!-- COMMUNITY -->
+<div class="overlay" id="m-community">
+<div class="modal">
+  <div class="modal-title">🌐 Add Community Member</div>
+  <div class="form-grid">
+    <div class="form-row"><label>Name *</label><input id="cm-name" placeholder="Full name"></div>
+    <div class="form-row"><label>Joined date *</label><input type="date" id="cm-date"></div>
+    <div class="form-row"><label>Contact</label><input id="cm-contact" placeholder="@telegram"></div>
+    <div class="form-row"><label>Fee status</label><select id="cm-status"><option value="paid">Paid</option><option value="pending">Pending</option><option value="overdue">Overdue</option><option value="suspended">Suspended</option></select></div>
+  </div>
+  <div class="modal-footer"><button class="btn btn-ghost" onclick="closeM()">Cancel</button><button class="btn btn-primary" onclick="saveCommunity()">Add member</button></div>
+</div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+
+function strikeDots(sk){
+  return [0,1,2].map(function(j){
+    var cls = j < sk ? (sk >= 3 ? 'danger' : 'hit') : '';
+    return '<div class="sd ' + cls + '"></div>';
+  }).join('');
+}
+function moodColor(m){
+  var n = parseInt(m);
+  return n >= 7 ? 'var(--green)' : n <= 4 ? 'var(--red)' : 'var(--gold)';
+}
+function hsCol(hs){
+  return hs >= 70 ? 'var(--green)' : hs >= 40 ? 'var(--gold)' : 'var(--red)';
+}
+function scoreCol(s, threshold){
+  if(threshold === 80) return s >= 80 ? 'var(--green)' : s >= 60 ? 'var(--gold)' : 'var(--red)';
+  return s >= 15 ? 'var(--green)' : 'var(--red)';
+}
+function scoreBarCls(s, threshold){
+  if(threshold === 80) return s >= 80 ? 'bf-green' : s >= 60 ? 'bf-gold' : 'bf-red';
+  return s >= 15 ? 'bf-green' : 'bf-red';
+}
+// ── CONSTANTS ──
+const M=3000,SPLIT=.5,FEE=500;
+const AVC=['av-1','av-2','av-3'];
+const SDOT={application:'sd-app',test:'sd-test',interview:'sd-int',training:'sd-train',rejected:'sd-rej'};
+const SLBL={application:'Application',test:'Screening test',interview:'Interview',training:'Training',rejected:'Rejected'};
+const STEPS=['application','test','interview','training'];
+
+// ── STATE ──
+let S={traders:[],payouts:[],candidates:[],briefs:[],sessions:[],violations:[],community:[]};
+let pipeF='all',eChart=null;
+
+// ── PERSIST ──
+function load(){try{const d=localStorage.getItem('foundry_v4');if(d)S=JSON.parse(d);}catch(e){}}
+function save(){try{localStorage.setItem('foundry_v4',JSON.stringify(S));}catch(e){}}
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2);}
+function today(){return new Date().toISOString().split('T')[0];}
+function thisMonth(){const n=new Date();return`${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}`;}
+function fmt(n){return'$'+Math.round(n).toLocaleString();}
+function ini(name){return name.trim().split(' ').map(w=>w[0]||'').join('').slice(0,2).toUpperCase();}
+function milTot(tid){return S.payouts.filter(p=>p.tid===tid).reduce((s,p)=>s+p.gross*SPLIT,0);}
+function strikes(tid){return S.violations.filter(v=>v.tid===tid&&v.type==='soft').length;}
+function healthScore(tid){
+  const tp=S.payouts.filter(p=>p.tid===tid);
+  const tv=S.violations.filter(v=>v.tid===tid);
+  const ts=S.sessions.filter(s=>s.tid===tid);
+  const reportsOk=ts.length?ts.filter(s=>s.rep==='yes').length/ts.length:1;
+  const dllOk=ts.length?ts.filter(s=>s.dll!=='breached').length/ts.length:1;
+  const noViol=Math.max(0,1-tv.length*0.15);
+  const pnlPos=ts.length?ts.filter(s=>s.pnl>0).length/ts.length:.5;
+  return Math.round((reportsOk*25+dllOk*25+noViol*25+pnlPos*25));
+}
+
+// ── THEME ──
+function setTheme(t){
+  document.documentElement.setAttribute('data-theme',t);
+  document.getElementById('tbtn-dark').classList.toggle('active',t==='dark');
+  document.getElementById('tbtn-light').classList.toggle('active',t==='light');
+  localStorage.setItem('foundry_theme',t);
+}
+(function(){const t=localStorage.getItem('foundry_theme')||'dark';setTheme(t);})();
+
+// ── NAV ──
+const TITLES={today:'Command Center',analytics:'Analytics',traders:'Traders',pipeline:'Pipeline','trader-profile':'Trader Profile','cand-profile':'Candidate Profile',community:'Community',payouts:'Payouts',briefings:'Morning Briefs',sessions:'Sessions',violations:'Violations',rules:'Desk Rules'};
+const ADD_MAP={today:()=>openM('m-trader'),traders:()=>openM('m-trader'),pipeline:()=>openM('m-candidate'),community:()=>openM('m-community'),payouts:()=>openPayoutM(),briefings:()=>openBriefM(),sessions:()=>openSessionM(),violations:()=>openViolM()};
+
+function nav(id,btn){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  const sec=document.getElementById('sec-'+id);
+  if(sec)sec.classList.add('active');
+  if(btn){document.querySelectorAll('.sb-item').forEach(b=>b.classList.remove('active'));btn.classList.add('active');}
+  document.getElementById('tb-title').textContent=TITLES[id]||id;
+  const addBtn=document.getElementById('tb-add');
+  addBtn.style.display=ADD_MAP[id]?'':'none';
+  render();
+}
+function back(id){nav(id,document.querySelector(`.sb-item[onclick*="${id}"]`));}
+function topbarAdd(){const a=document.querySelector('.sb-item.active');if(!a)return;const m=a.getAttribute('onclick').match(/'([^']+)'/);if(m&&ADD_MAP[m[1]])ADD_MAP[m[1]]();}
+
+// ── MODALS ──
+function openM(id){document.getElementById(id).classList.add('open');}
+function closeM(){document.querySelectorAll('.overlay').forEach(o=>o.classList.remove('open'));}
+
+function openPayoutM(){
+  const sel=document.getElementById('p-trader');sel.innerHTML='<option value="">Select...</option>';
+  S.traders.filter(t=>t.phase==='1').forEach(t=>{sel.innerHTML+=`<option value="${t.id}">${t.name}</option>`;});
+  document.getElementById('p-month').value=thisMonth();
+  ['p-gross','p-notes'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('p-type').value='monthly';
+  openM('m-payout');
+}
+function openBriefM(){
+  ['br-levels','br-ma9','br-watch','br-news'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('br-date').value=today();document.getElementById('br-bias').value='bullish';
+  openM('m-brief');
+}
+function openSessionM(){
+  const sel=document.getElementById('ss-trader');sel.innerHTML='<option value="">Select...</option>';
+  S.traders.forEach(t=>{sel.innerHTML+=`<option value="${t.id}">${t.name}</option>`;});
+  document.getElementById('ss-date').value=today();
+  ['ss-trades','ss-pnl','ss-mood','ss-notes'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('ss-dll').value='no';document.getElementById('ss-rep').value='yes';document.getElementById('ss-type').value='london';
+  openM('m-session');
+}
+function openViolM(){
+  const sel=document.getElementById('vl-trader');sel.innerHTML='<option value="">Select...</option>';
+  S.traders.forEach(t=>{sel.innerHTML+=`<option value="${t.id}">${t.name}</option>`;});
+  document.getElementById('vl-date').value=today();
+  ['vl-desc','vl-action'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('vl-type').value='soft';document.getElementById('vl-rule').value='report';
+  openM('m-viol');
+}
+function openEditTrader(id){
+  const t=S.traders.find(t=>t.id===id);if(!t)return;
+  document.getElementById('et-id').value=id;document.getElementById('m-trader-title').textContent='Edit Trader';
+  document.getElementById('t-name').value=t.name;document.getElementById('t-date').value=t.date;
+  document.getElementById('t-contact').value=t.contact||'';document.getElementById('t-phase').value=t.phase;
+  document.getElementById('t-firm').value=t.firm||'';document.getElementById('t-account').value=t.account||'';
+  document.getElementById('t-notes').value=t.notes||'';openM('m-trader');
+}
+function openEditCand(id){
+  const c=S.candidates.find(c=>c.id===id);if(!c)return;
+  document.getElementById('ec-id').value=id;document.getElementById('m-cand-title').textContent='Edit Candidate';
+  document.getElementById('c-name').value=c.name;document.getElementById('c-date').value=c.date;
+  document.getElementById('c-contact').value=c.contact||'';document.getElementById('c-stage').value=c.stage;
+  document.getElementById('c-score').value=c.score||'';document.getElementById('c-iscore').value=c.iscore||'';
+  document.getElementById('c-deposit').value=c.deposit||'no';document.getElementById('c-week').value=c.week||'0';
+  document.getElementById('c-notes').value=c.notes||'';openM('m-candidate');
+}
+
+// ── SAVES ──
+function saveTrader(){
+  const id=document.getElementById('et-id').value;
+  const d={name:document.getElementById('t-name').value.trim(),date:document.getElementById('t-date').value,contact:document.getElementById('t-contact').value.trim(),phase:document.getElementById('t-phase').value,firm:document.getElementById('t-firm').value.trim(),account:document.getElementById('t-account').value.trim(),notes:document.getElementById('t-notes').value.trim()};
+  if(!d.name||!d.date)return;d.initials=ini(d.name);
+  if(id){const t=S.traders.find(t=>t.id===id);if(t)Object.assign(t,d);}else S.traders.push({id:uid(),...d});
+  document.getElementById('et-id').value='';document.getElementById('m-trader-title').textContent='Add Trader';
+  save();closeM();render();
+}
+function savePayout(){
+  const tid=document.getElementById('p-trader').value,month=document.getElementById('p-month').value,gross=parseFloat(document.getElementById('p-gross').value);
+  if(!tid||!month||isNaN(gross)||gross<=0)return;
+  const trader=S.traders.find(t=>t.id===tid);if(!trader)return;
+  S.payouts.push({id:uid(),tid,traderName:trader.name,month,gross,type:document.getElementById('p-type').value,notes:document.getElementById('p-notes').value.trim()});
+  save();closeM();render();
+}
+function saveCandidate(){
+  const id=document.getElementById('ec-id').value;
+  const d={name:document.getElementById('c-name').value.trim(),date:document.getElementById('c-date').value,contact:document.getElementById('c-contact').value.trim(),stage:document.getElementById('c-stage').value,score:document.getElementById('c-score').value,iscore:document.getElementById('c-iscore').value,deposit:document.getElementById('c-deposit').value,week:document.getElementById('c-week').value,notes:document.getElementById('c-notes').value.trim()};
+  if(!d.name||!d.date)return;
+  if(id){const c=S.candidates.find(c=>c.id===id);if(c)Object.assign(c,d);}else S.candidates.push({id:uid(),...d});
+  document.getElementById('ec-id').value='';document.getElementById('m-cand-title').textContent='Add Candidate';
+  save();closeM();render();
+}
+function saveBrief(){
+  S.briefs.push({id:uid(),date:document.getElementById('br-date').value,bias:document.getElementById('br-bias').value,levels:document.getElementById('br-levels').value.trim(),ma9:document.getElementById('br-ma9').value.trim(),watch:document.getElementById('br-watch').value.trim(),news:document.getElementById('br-news').value.trim()});
+  save();closeM();render();
+}
+function saveSession(){
+  const tid=document.getElementById('ss-trader').value;if(!tid)return;
+  const trader=S.traders.find(t=>t.id===tid);if(!trader)return;
+  const dll=document.getElementById('ss-dll').value,rep=document.getElementById('ss-rep').value;
+  const pnl=parseFloat(document.getElementById('ss-pnl').value)||0;
+  S.sessions.push({id:uid(),tid,traderName:trader.name,date:document.getElementById('ss-date').value,type:document.getElementById('ss-type').value,trades:parseInt(document.getElementById('ss-trades').value)||0,pnl,dll,rep,mood:document.getElementById('ss-mood').value,notes:document.getElementById('ss-notes').value.trim()});
+  if(dll==='breached')S.violations.push({id:uid(),tid,traderName:trader.name,date:document.getElementById('ss-date').value,type:'soft',rule:'dll',desc:'Traded past DLL',action:'Auto-logged'});
+  if(rep==='no')S.violations.push({id:uid(),tid,traderName:trader.name,date:document.getElementById('ss-date').value,type:'soft',rule:'report',desc:'Session report not submitted',action:'Auto-logged'});
+  save();closeM();render();
+}
+function saveViolation(){
+  const tid=document.getElementById('vl-trader').value;if(!tid)return;
+  const trader=S.traders.find(t=>t.id===tid);if(!trader)return;
+  S.violations.push({id:uid(),tid,traderName:trader.name,date:document.getElementById('vl-date').value,type:document.getElementById('vl-type').value,rule:document.getElementById('vl-rule').value,desc:document.getElementById('vl-desc').value.trim(),action:document.getElementById('vl-action').value.trim()});
+  save();closeM();render();
+}
+function saveCommunity(){
+  const name=document.getElementById('cm-name').value.trim();if(!name)return;
+  S.community.push({id:uid(),name,contact:document.getElementById('cm-contact').value.trim(),date:document.getElementById('cm-date').value,status:document.getElementById('cm-status').value,initials:ini(name)});
+  save();closeM();render();
+}
+function setCmStatus(id,v){const m=S.community.find(m=>m.id===id);if(!m)return;m.status=v;save();render();}
+
+// ── PROFILES ──
+function openTraderProfile(id){
+  const t=S.traders.find(t=>t.id===id);if(!t)return;
+  const av=AVC[S.traders.indexOf(t)%3],tot=milTot(id),pct=Math.min(100,Math.round(tot/M*100)),done=tot>=M;
+  const sk=strikes(id),hs=healthScore(id);
+  const tp=S.payouts.filter(p=>p.tid===id);
+  const tv=S.violations.filter(v=>v.tid===id);
+  const avgP=tp.length?tp.reduce((s,p)=>s+p.gross,0)/tp.length:0;
+  const proj=tp.length&&tot<M?Math.ceil((M-tot)/(tot/tp.length)):null;
+  const hsColor=hsCol(hs);
+  const hsDash=`${hs},100`;
+
+  document.getElementById('tp-content').innerHTML=`
+    <div class="profile-hero">
+      <div class="av av-xl ${av}">${t.initials}</div>
+      <div class="profile-meta" style="flex:1">
+        <h2>${t.name}</h2>
+        <div class="sub">${t.firm||'No firm'} &middot; ${t.account||'No account set'} &middot; ${t.contact||'No contact'}</div>
+        <div class="tags">
+          <span class="badge ${t.phase==='1'?'b-gold':'b-green'}">Phase ${t.phase==='1'?'1 — Active':'2B — Community'}</span>
+          <span class="badge ${sk>=3?'b-red':sk>=2?'b-amber':'b-gray'}">${sk} strike${sk!==1?'s':''}</span>
+          <span class="badge b-blue">Health: ${hs}/100</span>
+          ${done?'<span class="badge b-green">✓ Phase 2 ready</span>':''}
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;margin-left:auto">
+        <button class="btn btn-ghost btn-sm" onclick="openEditTrader('${id}')">Edit</button>
+        <button class="btn btn-primary btn-sm" onclick="openPayoutM()">Log payout</button>
+      </div>
+    </div>
+
+    <div class="metrics" style="margin-bottom:1.25rem">
+      <div class="mc mc-gold"><div class="mc-icon">$</div><div class="mc-label">Your earnings</div><div class="mc-value">${fmt(tot)}</div><div class="mc-sub">50% of gross</div></div>
+      <div class="mc"><div class="mc-icon">#</div><div class="mc-label">Payouts</div><div class="mc-value">${tp.length}</div><div class="mc-sub">Logged</div></div>
+      <div class="mc"><div class="mc-icon">~</div><div class="mc-label">Avg payout</div><div class="mc-value">${fmt(avgP)}</div><div class="mc-sub">Per entry</div></div>
+      <div class="mc ${hs>=70?'mc-green':hs>=40?'mc-gold':'mc-red'}"><div class="mc-icon">♥</div><div class="mc-label">Health score</div><div class="mc-value">${hs}</div><div class="mc-sub">Out of 100</div></div>
+    </div>
+
+    <div class="g2">
+      <div class="card">
+        <div class="card-title">Milestone progress</div>
+        <div style="display:flex;justify-content:space-between;font-size:14px;margin-bottom:10px">
+          <span class="fw6">${fmt(tot)} earned</span>
+          <span class="muted">${fmt(M-Math.min(tot,M))} remaining</span>
+        </div>
+        <div class="bar bar-lg"><div class="bar-fill ${done?'bf-green':'bf-gold'}" style="width:${pct}%"></div></div>
+        <div style="display:flex;justify-content:space-between;margin-top:8px;font-size:12px">
+          <span class="muted">${pct}% complete</span>
+          ${proj?`<span class="muted">~${proj} month${proj!==1?'s':''} at current pace</span>`:''}
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Discipline tracker</div>
+        <div style="display:flex;align-items:center;gap:16px;margin-bottom:12px">
+          <div class="strikes">${[0,1,2].map(i=>`<div class="sd ${i<sk?(sk>=3?'danger':'hit'):''}"></div>`).join('')}</div>
+          <span style="font-size:14px;color:${sk>=2?'var(--red)':sk>=1?'var(--amber)':'var(--green)'};font-weight:600">${sk===0?'Clean record':sk===1?'1 strike — watch':sk===2?'2 strikes — warning':'3 strikes — action required'}</span>
+        </div>
+        ${tv.length?tv.slice(-2).map(v=>`<div style="font-size:12px;color:var(--text3);padding:4px 0;border-bottom:1px solid var(--border)">${v.date} &middot; ${v.rule}</div>`).join(''):'<div class="text-sm muted">No violations on record</div>'}
+      </div>
+    </div>
+
+    ${t.notes?`<div class="note" style="margin:14px 0"><strong style="font-size:11px;text-transform:uppercase;letter-spacing:.5px">Private Notes</strong><br>${t.notes}</div>`:''}
+
+    <div class="card" style="margin-top:14px">
+      <div class="card-title">Payout history</div>
+      <div class="tbl-wrap" style="box-shadow:none;border:none">
+        <table><thead><tr><th>Month</th><th>Type</th><th>Gross</th><th>Your 50%</th><th>Notes</th></tr></thead>
+        <tbody>${tp.length?[...tp].reverse().map(p=>`<tr><td>${p.month}</td><td><span class="badge b-gray">${p.type||'monthly'}</span></td><td>${fmt(p.gross)}</td><td class="green">${fmt(p.gross*SPLIT)}</td><td class="td-muted">${p.notes||'—'}</td></tr>`).join(''):'<tr><td colspan="5" style="text-align:center;padding:1.5rem" class="muted">No payouts yet</td></tr>'}</tbody></table>
+      </div>
+    </div>`;
+
+  nav('trader-profile',null);
+  document.getElementById('tb-title').textContent=t.name;
+  document.getElementById('tb-add').style.display='none';
+}
+
+function openCandProfile(id){
+  const c=S.candidates.find(c=>c.id===id);if(!c)return;
+  const si=STEPS.indexOf(c.stage);
+  const score=parseFloat(c.score)||0,iscore=parseFloat(c.iscore)||0;
+  const stepsH=STEPS.map((s,i)=>{const cls=i<si?'step-done':i===si?'step-active':'step-pending';return`<div class="step-item ${cls}"><div class="step-connector"></div><div class="step-circle">${i<si?'✓':i+1}</div><div class="step-label">${SLBL[s]}</div></div>`;}).join('');
+
+  document.getElementById('cp-content').innerHTML=`
+    <div class="profile-hero">
+      <div class="av av-xl av-2">${ini(c.name)}</div>
+      <div class="profile-meta" style="flex:1">
+        <h2>${c.name}</h2>
+        <div class="sub">${c.contact||'No contact'} &middot; Added ${c.date}</div>
+        <div class="tags">
+          <span class="badge ${c.stage==='rejected'?'b-red':c.stage==='training'?'b-green':'b-gold'}">${SLBL[c.stage]}</span>
+          <span class="badge ${c.deposit==='yes'?'b-green':c.deposit==='forfeited'?'b-red':'b-gray'}">${c.deposit==='yes'?'Deposit paid':c.deposit==='forfeited'?'Deposit forfeited':'No deposit'}</span>
+          ${score?`<span class="badge ${score>=80?'b-green':score>=60?'b-gold':'b-red'}">Test: ${Math.round(score)}/100</span>`:''}
+        </div>
+      </div>
+      <button class="btn btn-ghost btn-sm" onclick="openEditCand('${id}')">Edit</button>
+    </div>
+
+    ${c.stage!=='rejected'?`<div class="steps">${stepsH}</div>`:''}
+
+    <div class="g2">
+      <div class="card">
+        <div class="card-title">Screening test</div>
+        ${score?`<div style="font-size:32px;font-weight:700;color:${scoreCol(score, 80)};margin-bottom:10px">${Math.round(score)}<span style="font-size:16px;color:var(--text3)">/100</span></div><div class="bar"><div class="bar-fill ${scoreBarCls(score, 80)}" style="width:${score}%"></div></div><div class="text-xs muted" style="margin-top:6px">${score>=80?'Strong candidate':score>=60?'Conditional proceed':'Below threshold — do not proceed'}</div>`:'<div class="muted text-sm">No score recorded</div>'}
+      </div>
+      <div class="card">
+        <div class="card-title">Interview score</div>
+        ${iscore?`<div style="font-size:32px;font-weight:700;color:${scoreCol(iscore, 15)};margin-bottom:10px">${Math.round(iscore)}<span style="font-size:16px;color:var(--text3)">/25</span></div><div class="bar"><div class="bar-fill ${scoreBarCls(iscore, 15)}" style="width:${iscore/25*100}%"></div></div><div class="text-xs muted" style="margin-top:6px">${iscore>=15?'Meets threshold':'Below threshold'}</div>`:'<div class="muted text-sm">No score recorded</div>'}
+      </div>
+      <div class="card">
+        <div class="sr"><span class="sr-label">Training week</span><span class="sr-val">${c.week==='0'?'Not started':c.week==='pass'?'✓ Passed':c.week==='fail'?'✗ Failed':'Week '+c.week}</span></div>
+        <div class="sr"><span class="sr-label">Stage</span><span class="sr-val">${SLBL[c.stage]}</span></div>
+      </div>
+      ${c.notes?`<div class="card"><div class="note">${c.notes}</div></div>`:'<div class="card"><div class="muted text-sm">No notes recorded</div></div>'}
+    </div>`;
+
+  nav('cand-profile',null);
+  document.getElementById('tb-title').textContent=c.name;
+  document.getElementById('tb-add').style.display='none';
+}
+
+function pipeFilter(f,btn){pipeF=f;document.querySelectorAll('#pipe-tabs .tab').forEach(t=>t.classList.remove('active'));btn.classList.add('active');renderPipeline();}
+
+// ── EXPORT / IMPORT ──
+function exportData(){const b=new Blob([JSON.stringify(S,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`foundry-${today()}.json`;a.click();}
+function importData(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{try{S=JSON.parse(ev.target.result);save();render();alert('Data imported successfully.');}catch{alert('Invalid file.');}};r.readAsText(f);e.target.value='';}
+
+// ── RENDER ──
+function render(){
+  // date
+  document.getElementById('tb-date').textContent=new Date().toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
+
+  const ph1=S.traders.filter(t=>t.phase==='1');
+  const ph2=S.traders.filter(t=>t.phase==='2');
+  const totalY=S.payouts.reduce((s,p)=>s+p.gross*SPLIT,0);
+  const totalG=S.payouts.reduce((s,p)=>s+p.gross,0);
+  const mn=thisMonth();
+  const monthY=S.payouts.filter(p=>p.month===mn).reduce((s,p)=>s+p.gross*SPLIT,0);
+  const cmActive=S.community.filter(m=>m.status==='paid').length;
+  const hardViols=S.violations.filter(v=>v.type==='hard').length;
+
+  document.getElementById('sb-traders').textContent=ph1.length;
+  document.getElementById('sb-cands').textContent=S.candidates.filter(c=>c.stage!=='rejected').length;
+  document.getElementById('sb-comm').textContent=S.community.length;
+  const sv=document.getElementById('sb-viols');sv.textContent=hardViols;sv.style.display=hardViols?'':'none';
+
+  // ── COMMAND CENTER ──
+  if(document.getElementById('sec-today').classList.contains('active')){
+    document.getElementById('td-yours').textContent=fmt(totalY);
+    document.getElementById('td-traders').textContent=ph1.length;
+    document.getElementById('td-month').textContent=fmt(monthY);
+    document.getElementById('td-fees').textContent=fmt(S.community.length*FEE)+'/mo';
+
+    // alerts
+    const alerts=[];
+    S.traders.filter(t=>t.phase==='1').forEach(t=>{
+      const sk=strikes(t.id);
+      if(sk>=3)alerts.push({type:'danger',msg:`${t.name} has 3 strikes — removal action required`});
+      else if(sk===2)alerts.push({type:'warn',msg:`${t.name} has 2 strikes — one more means removal`});
+      const tot=milTot(t.id);if(tot>=M)alerts.push({type:'success',msg:`${t.name} has reached the $3,000 milestone — Phase 2 conversation due`});
+    });
+    S.community.filter(m=>m.status==='overdue'||m.status==='suspended').forEach(m=>alerts.push({type:'warn',msg:`${m.name} community fee is ${m.status}`}));
+    if(!S.briefs.length||S.briefs[S.briefs.length-1].date!==today())alerts.push({type:'info',msg:"Today's morning brief has not been posted yet"});
+    const AB={'danger':'ai-danger','warn':'ai-warn','info':'ai-info','success':'ai-success'};
+    const AI={'danger':'🚨','warn':'⚠️','info':'📋','success':'🎉'};
+    const ad=document.getElementById('today-alerts');
+    ad.innerHTML=alerts.map(a=>`<div class="alert-item ${AB[a.type]}"><span>${AI[a.type]}</span><span>${a.msg}</span></div>`).join('');
+
+    // milestones
+    const md=document.getElementById('td-milestones');
+    md.innerHTML=ph1.length?ph1.map(t=>{const tot=milTot(t.id),pct=Math.min(100,Math.round(tot/M*100)),done=tot>=M;return`<div style="margin-bottom:12px"><div style="display:flex;justify-content:space-between;font-size:14px;margin-bottom:6px;font-weight:500"><span>${t.name}</span><span class="${done?'green':'gold'}">${fmt(tot)} / ${fmt(M)}</span></div><div class="bar bar-lg"><div class="bar-fill ${done?'bf-green':'bf-gold'}" style="width:${pct}%"></div></div><div class="text-xs muted" style="margin-top:4px">${pct}% to Phase 2</div></div>`;}).join(''):'<div class="empty" style="padding:1.5rem"><div class="empty-icon">📊</div>No active traders</div>';
+
+    // latest brief
+    const lb=S.briefs.length?S.briefs[S.briefs.length-1]:null;
+    const bd=document.getElementById('td-brief');
+    bd.innerHTML=lb?`<div class="brief-head"><span class="text-sm muted fw6">${lb.date}</span><span class="bias-pill ${lb.bias==='bullish'?'bull':lb.bias==='bearish'?'bear':'neu'}">${lb.bias}</span></div>${lb.levels?`<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">${lb.levels.split(',').map(l=>`<span class="level-tag">${l.trim()}</span>`).join('')}</div>`:''}<div class="text-sm" style="color:var(--text2)"><strong>MA9:</strong> ${lb.ma9||'—'}</div>${lb.watch?`<div class="text-sm muted" style="margin-top:4px">${lb.watch}</div>`:''}`:'<div class="muted text-sm">No brief posted yet today</div>';
+
+    // health
+    const hd=document.getElementById('td-health');
+    hd.innerHTML=ph1.length?ph1.map((t,i)=>{const hs=healthScore(t.id),c=hsCol(hs);return`<div style="display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid var(--border)"><div class="av av-sm ${AVC[i%3]}">${t.initials}</div><span style="font-size:14px;font-weight:500;flex:1">${t.name}</span><div class="bar" style="width:80px"><div class="bar-fill" style="width:${hs}%;background:${c}"></div></div><span style="font-size:13px;font-weight:700;color:${c};width:36px;text-align:right">${hs}</span></div>`;}).join(''):'<div class="muted text-sm">No traders</div>';
+
+    // pipeline
+    const active=S.candidates.filter(c=>c.stage!=='rejected');
+    document.getElementById('td-pipe-count').textContent=`${active.length} active`;
+    const pd=document.getElementById('td-pipeline');
+    pd.innerHTML=active.slice(0,4).map(c=>`<div class="pi" onclick="openCandProfile('${c.id}')"><span class="stage-dot ${SDOT[c.stage]}"></span><span style="font-size:14px;font-weight:500;flex:1">${c.name}</span><span class="badge b-gray text-xs">${SLBL[c.stage]}</span></div>`).join('')||'<div class="muted text-sm">No candidates in pipeline</div>';
+  }
+
+  // ── ANALYTICS ──
+  if(document.getElementById('sec-analytics').classList.contains('active')){
+    const avgP=S.payouts.length?totalG/S.payouts.length:0;
+    const conv=S.candidates.length?Math.round(S.traders.length/S.candidates.length*100):0;
+    const closest=ph1.length?ph1.reduce((b,t)=>milTot(t.id)>milTot(b.id)?t:b,ph1[0]):null;
+    document.getElementById('an-total').textContent=fmt(totalY);
+    document.getElementById('an-avg').textContent=fmt(avgP);
+    document.getElementById('an-conv').textContent=conv+'%';
+    document.getElementById('an-close').textContent=closest?closest.name.split(' ')[0]:'—';
+
+    // earnings chart
+    const mMap={};S.payouts.forEach(p=>{if(!mMap[p.month])mMap[p.month]=0;mMap[p.month]+=p.gross*SPLIT;});
+    const mKeys=Object.keys(mMap).sort().slice(-8);
+    const mVals=mKeys.map(k=>Math.round(mMap[k]));
+    const canvas=document.getElementById('chart-earnings');
+    const isDark=document.documentElement.getAttribute('data-theme')==='dark';
+    if(eChart){eChart.destroy();eChart=null;}
+    if(mKeys.length&&canvas){eChart=new Chart(canvas,{type:'bar',data:{labels:mKeys,datasets:[{data:mVals,backgroundColor:isDark?'rgba(212,168,67,0.5)':'rgba(184,135,10,0.4)',borderColor:isDark?'#d4a843':'#b8870a',borderWidth:1.5,borderRadius:6}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:isDark?'#5c5a57':'#9a9895',font:{size:11}},grid:{display:false}},y:{ticks:{color:isDark?'#5c5a57':'#9a9895',font:{size:11},callback:v=>'$'+v.toLocaleString()},grid:{color:isDark?'rgba(255,255,255,.04)':'rgba(0,0,0,.04)'}}}}})}
+    else if(canvas)canvas.parentElement.innerHTML='<div class="empty" style="margin:0">No payout data yet</div>';
+
+    // velocity
+    const vd=document.getElementById('an-velocity');
+    vd.innerHTML=ph1.length?ph1.map(t=>{const tot=milTot(t.id),pct=Math.min(100,Math.round(tot/M*100)),tp=S.payouts.filter(p=>p.tid===t.id),proj=tp.length&&tot<M?Math.ceil((M-tot)/(tot/tp.length)):null;return`<div style="margin-bottom:16px"><div style="display:flex;justify-content:space-between;font-size:14px;margin-bottom:6px"><span class="fw6">${t.name}</span><span class="muted text-sm">${proj?`~${proj}mo to Phase 2`:'✓ Milestone reached'}</span></div><div class="bar bar-lg"><div class="bar-fill bf-gold" style="width:${pct}%"></div></div><div class="text-xs muted" style="margin-top:4px">${fmt(tot)} of ${fmt(M)}</div></div>`;}).join(''):'<div class="muted text-sm">No active traders</div>';
+
+    // per-trader
+    const abd=document.getElementById('an-breakdown');
+    abd.innerHTML=S.traders.length?`<table><thead><tr><th>Trader</th><th>Payouts</th><th>Gross total</th><th>Your earnings</th><th>Avg/payout</th><th>Health</th><th>Phase</th></tr></thead><tbody>${S.traders.map(t=>{const tp=S.payouts.filter(p=>p.tid===t.id),tg=tp.reduce((s,p)=>s+p.gross,0),te=tg*SPLIT,av=tp.length?tg/tp.length:0,hs=healthScore(t.id);return`<tr><td class="fw6">${t.name}</td><td>${tp.length}</td><td>${fmt(tg)}</td><td class="green">${fmt(te)}</td><td>${fmt(av)}</td><td><span style="color:${hsCol(hs)};font-weight:700">${hs}</span></td><td><span class="badge ${t.phase==='1'?'b-gold':'b-green'}">Phase ${t.phase==='1'?'1':'2B'}</span></td></tr>`;}).join('')}</tbody></table>`:'<div class="muted text-sm">No traders</div>';
+  }
+
+  // ── TRADERS ──
+  if(document.getElementById('sec-traders').classList.contains('active')){
+    const tc=document.getElementById('trader-cards'),te=document.getElementById('traders-empty');
+    if(!S.traders.length){tc.innerHTML='';te.style.display='block';}
+    else{te.style.display='none';tc.innerHTML=S.traders.map((t,i)=>{const tot=milTot(t.id),pct=Math.min(100,Math.round(tot/M*100)),done=tot>=M,sk=strikes(t.id),hs=healthScore(t.id),hsC=hsCol(hs);return`<div class="card" style="cursor:pointer;transition:transform .15s" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform=''" onclick="openTraderProfile('${t.id}')"><div style="display:flex;align-items:center;gap:12px;margin-bottom:14px"><div class="av av-md ${AVC[i%3]}">${t.initials}</div><div style="flex:1"><div style="font-size:15px;font-weight:700">${t.name}</div><div class="text-sm muted">${t.firm||'No firm'} &middot; Since ${t.date}</div></div><span class="badge ${t.phase==='1'?'b-gold':'b-green'}">Ph.${t.phase==='1'?'1':'2B'}</span></div><div class="sr"><span class="sr-label">Your earnings</span><span class="gold">${fmt(tot)}</span></div><div class="sr"><span class="sr-label">Health score</span><span style="color:${hsC};font-weight:700">${hs}/100</span></div><div class="sr"><span class="sr-label">Strikes</span><div class="strikes">${strikeDots(sk)}</div></div>${t.phase==='1'?`<div style="margin-top:10px"><div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text3);margin-bottom:5px"><span>Milestone</span><span>${pct}%</span></div><div class="bar"><div class="bar-fill ${done?'bf-green':'bf-gold'}" style="width:${pct}%"></div></div>`:''}`;}).join('');}
+  }
+
+  // ── PIPELINE ──
+  renderPipeline();
+
+  // ── COMMUNITY ──
+  if(document.getElementById('sec-community').classList.contains('active')){
+    const paid=S.community.filter(m=>m.status==='paid').length;
+    const ov=S.community.filter(m=>m.status==='overdue'||m.status==='suspended').length;
+    document.getElementById('cm-count').textContent=S.community.length;
+    document.getElementById('cm-fees').textContent=fmt(S.community.length*FEE)+'/mo';
+    document.getElementById('cm-paid').textContent=fmt(paid*FEE);
+    document.getElementById('cm-overdue').textContent=fmt(ov*FEE);
+    const rows=document.getElementById('cm-rows');
+    rows.innerHTML=S.community.length?S.community.map(m=>`<tr><td><div style="display:flex;align-items:center;gap:10px"><div class="av av-sm av-2">${m.initials}</div><div><div class="fw6">${m.name}</div><div class="text-xs muted">${m.contact||'—'}</div></div></div></td><td>${m.date}</td><td>${m.contact||'—'}</td><td><span class="badge ${m.status==='paid'?'b-green':m.status==='pending'?'b-amber':'b-red'}">${m.status}</span></td><td><span class="badge ${m.status==='suspended'?'b-red':'b-green'}">${m.status==='suspended'?'Suspended':'Active'}</span></td><td><select onchange="setCmStatus('${m.id}',this.value)" style="font-size:12px;padding:4px 8px;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;color:var(--text);font-family:inherit"><option ${m.status==='paid'?'selected':''} value="paid">Paid</option><option ${m.status==='pending'?'selected':''} value="pending">Pending</option><option ${m.status==='overdue'?'selected':''} value="overdue">Overdue</option><option ${m.status==='suspended'?'selected':''} value="suspended">Suspended</option></select></td></tr>`).join(''):'<tr><td colspan="6" style="text-align:center;padding:2.5rem" class="muted">No community members yet</td></tr>';
+  }
+
+  // ── PAYOUTS ──
+  if(document.getElementById('sec-payouts').classList.contains('active')){
+    document.getElementById('py-total').textContent=fmt(totalY);
+    document.getElementById('py-month').textContent=fmt(monthY);
+    document.getElementById('py-count').textContent=S.payouts.length;
+    document.getElementById('py-active').textContent=ph1.length;
+    const rm={};
+    const rows=document.getElementById('py-rows');
+    rows.innerHTML=S.payouts.length?[...S.payouts].reverse().map(p=>{if(!rm[p.tid])rm[p.tid]=0;rm[p.tid]+=p.gross*SPLIT;const done=rm[p.tid]>=M;return`<tr><td class="fw6">${p.month}</td><td>${p.traderName}</td><td><span class="badge b-gray">${p.type||'monthly'}</span></td><td>${fmt(p.gross)}</td><td class="green">${fmt(p.gross*SPLIT)}</td><td>${fmt(rm[p.tid])}</td><td><span class="badge ${done?'b-green':'b-gray'}">${done?'✓ Phase 2':Math.round(rm[p.tid]/M*100)+'%'}</span></td><td class="td-muted">${p.notes||'—'}</td></tr>`;}).join(''):'<tr><td colspan="8" style="text-align:center;padding:2.5rem" class="muted">No payouts logged yet</td></tr>';
+  }
+
+  // ── BRIEFINGS ──
+  if(document.getElementById('sec-briefings').classList.contains('active')){
+    const bl=document.getElementById('brief-list'),be=document.getElementById('brief-empty');
+    if(!S.briefs.length){bl.innerHTML='';be.style.display='block';}
+    else{be.style.display='none';bl.innerHTML=[...S.briefs].reverse().map(b=>`<div class="brief-card"><div class="brief-head"><span class="fw6">${b.date}</span><span class="bias-pill ${b.bias==='bullish'?'bull':b.bias==='bearish'?'bear':'neu'}">${b.bias}</span></div>${b.levels?`<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">${b.levels.split(',').map(l=>`<span class="level-tag">${l.trim()}</span>`).join('')}</div>`:''}<div class="text-sm" style="color:var(--text2);margin-bottom:4px"><span class="fw6">MA9:</span> ${b.ma9||'—'}</div><div class="text-sm" style="color:var(--text2);margin-bottom:4px"><span class="fw6">Watch:</span> ${b.watch||'—'}</div>${b.news?`<div class="text-xs muted"><span class="fw6">News:</span> ${b.news}</div>`:''}</div>`).join('');}
+  }
+
+  // ── SESSIONS ──
+  if(document.getElementById('sec-sessions').classList.contains('active')){
+    const rows=document.getElementById('ss-rows');
+    rows.innerHTML=S.sessions.length?[...S.sessions].reverse().map(s=>`<tr><td class="fw6">${s.date}</td><td><span class="badge b-gray">${s.type}</span></td><td>${s.traderName}</td><td>${s.trades}</td><td style="color:${s.pnl>0?'var(--green)':s.pnl<0?'var(--red)':'var(--text)'};font-weight:600">${s.pnl>0?'+':''}${fmt(s.pnl)}</td><td><span class="badge ${s.dll==='no'?'b-green':s.dll==='yes'?'b-amber':'b-red'}">${s.dll}</span></td><td><span class="badge ${s.rep==='yes'?'b-green':s.rep==='late'?'b-amber':'b-red'}">${s.rep}</span></td><td style="color:${moodColor(s.mood)};font-weight:600">${s.mood||'—'}/10</td><td class="td-muted" style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${s.notes||'—'}</td></tr>`).join(''):'<tr><td colspan="9" style="text-align:center;padding:2.5rem" class="muted">No sessions logged yet</td></tr>';
+  }
+
+  // ── VIOLATIONS ──
+  if(document.getElementById('sec-violations').classList.contains('active')){
+    const hard=S.violations.filter(v=>v.type==='hard').length;
+    const soft=S.violations.filter(v=>v.type==='soft').length;
+    const risk=S.traders.filter(t=>strikes(t.id)>=2).length;
+    document.getElementById('vl-total').textContent=S.violations.length;
+    document.getElementById('vl-hard').textContent=hard;
+    document.getElementById('vl-soft').textContent=soft;
+    document.getElementById('vl-risk').textContent=risk;
+    const rows=document.getElementById('vl-rows');
+    rows.innerHTML=S.violations.length?[...S.violations].reverse().map(v=>`<tr><td>${v.date}</td><td class="fw6">${v.traderName}</td><td><span class="badge ${v.type==='hard'?'b-red':'b-amber'}">${v.type}</span></td><td>${v.rule}</td><td style="font-weight:700;color:${strikes(v.tid)>=3?'var(--red)':strikes(v.tid)>=2?'var(--amber)':'var(--text)'}">${strikes(v.tid)}</td><td class="td-muted">${v.desc||'—'}</td><td class="td-muted">${v.action||'—'}</td></tr>`).join(''):'<tr><td colspan="7" style="text-align:center;padding:2.5rem" class="muted">No violations logged</td></tr>';
+  }
+}
+
+function renderPipeline(){
+  if(!document.getElementById('sec-pipeline').classList.contains('active'))return;
+  const pl=document.getElementById('pipe-list'),pe=document.getElementById('pipe-empty');
+  const filtered=pipeF==='all'?S.candidates:S.candidates.filter(c=>c.stage===pipeF);
+  if(!filtered.length){pl.innerHTML='';pe.style.display='block';}
+  else{pe.style.display='none';pl.innerHTML=filtered.map(c=>{const score=parseFloat(c.score)||0;return`<div class="pi" onclick="openCandProfile('${c.id}')"><span class="stage-dot ${SDOT[c.stage]}"></span><div style="flex:1"><div style="font-size:14px;font-weight:600">${c.name}</div><div class="text-xs muted">${c.contact||'No contact'} &middot; ${c.date}</div></div>${score?`<span class="badge ${score>=80?'b-green':score>=60?'b-gold':'b-red'} text-xs">${Math.round(score)}/100</span>`:''}<span class="badge ${c.stage==='rejected'?'b-red':c.stage==='training'?'b-green':'b-gold'}">${SLBL[c.stage]}</span><span class="badge ${c.deposit==='yes'?'b-green':'b-gray'} text-xs">${c.deposit==='yes'?'$600 paid':'No deposit'}</span></div>`;}).join('');}
+}
+
+// ── INIT ──
+document.querySelectorAll('.overlay').forEach(o=>{o.addEventListener('click',e=>{if(e.target===o)closeM();});});
+load();render();
+</script>
+</body>
+</html>
